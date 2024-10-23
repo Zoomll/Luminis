@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luminis Interpreter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #output {
+            margin-top: 20px;
+            width: 100%;
+            height: 150px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Luminis Interpreter</h1>
+    <textarea id="code" placeholder="Write Luminis code here..."></textarea>
+    <button onclick="runLuminis()">Run Code</button>
+    <textarea id="output" readonly></textarea>
+
+    <script>
+        class LuminisInterpreter {
+            constructor() {
+                this.context = {};  // Stores variables
+            }
+
+            // Replace variables with their values in expressions, but not inside quotes
+            replaceVariables(expr) {
+                let inQuotes = false;
+                let result = '';
+                let currentWord = '';
+
+                for (let i = 0; i < expr.length; i++) {
+                    const char = expr[i];
+
+                    if (char === '"') {
+                        inQuotes = !inQuotes;  // Toggle whether we are inside quotes
+                    }
+
+                    if (!inQuotes && /\w/.test(char)) {
+                        currentWord += char;  // Build up a word (potential variable)
+                    } else {
+                        if (currentWord.length > 0) {
+                            // Replace the word if it's a variable in context
+                            result += this.context.hasOwnProperty(currentWord) ? this.context[currentWord] : currentWord;
+                            currentWord = '';  // Reset the word
+                        }
+                        result += char;  // Add non-word characters directly to the result
+                    }
+                }
+
+                // Add the last word if there is any
+                if (currentWord.length > 0) {
+                    result += this.context.hasOwnProperty(currentWord) ? this.context[currentWord] : currentWord;
+                }
+
+                return result;
+            }
+
+            // Evaluate basic arithmetic operations and expressions
+            evalExpression(expr) {
+                expr = expr.trim();
+
+                // Handle concatenation with ".."
+                if (expr.includes('..')) {
+                    const parts = expr.split('..').map(part => this.evalExpression(part.trim()));
+                    return parts.join('');  // Join evaluated parts
+                }
+
+                // Replace variables in the expression with their actual values
+                expr = this.replaceVariables(expr);
+
+                // Handle arithmetic operations
+                if (/[+\-*/]/.test(expr)) {
+                    try {
+                        return Function('"use strict"; return (' + expr + ')')();
+                    } catch (e) {
+                        return "Error evaluating expression: " + expr;
+                    }
+                }
+
+                // Handle numbers
+                if (!isNaN(expr)) {
+                    return parseFloat(expr);
+                }
+
+                // Handle string literals (surrounded by quotes)
+                if (expr.startsWith('"') && expr.endsWith('"')) {
+                    return expr.slice(1, -1);  // Remove quotes
+                }
+
+                return expr;  // In case it’s already an expression or a string
+            }
+
+            // Simplified function for assignments (let x = 10;)
+            evalAssignment(line) {
+                const parts = line.split('=');
+                if (parts.length === 2) {
+                    const variable = parts[0].replace('let', '').trim();
+                    const value = this.evalExpression(parts[1].replace(';', '').trim());
+                    this.context[variable] = value;
+                }
+            }
+
+            // Simplified function to handle print statements
+            evalPrint(line) {
+                const innerContent = line.substring(line.indexOf('(') + 1, line.lastIndexOf(')')).trim();
+                const value = this.evalExpression(innerContent);
+                this.print(value);
+            }
+
+            // Output to the output textarea
+            print(value) {
+                const outputBox = document.getElementById('output');
+                outputBox.value += value + '\n';  // Append the value to the output
+            }
+
+            // Main function to process each line of Luminis code
+            evalLine(line) {
+                line = line.trim();
+                
+                // Handle let assignments
+                if (line.startsWith('let ')) {
+                    this.evalAssignment(line);
+                }
+                // Handle print statements
+                else if (line.startsWith('print(')) {
+                    this.evalPrint(line);
+                }
+            }
+
+            // Execute all lines of code
+            run(code) {
+                const lines = code.split('\n');  // Split code into lines
+                lines.forEach((line) => {
+                    this.evalLine(line);  // Evaluate each line
+                });
+            }
+        }
+
+        // Function triggered when "Run Code" button is pressed
+        function runLuminis() {
+            const code = document.getElementById('code').value;
+            const interpreter = new LuminisInterpreter();
+            document.getElementById('output').value = '';  // Clear previous output
+            interpreter.run(code);  // Execute code
+        }
+    </script>
+</body>
+  </html>
