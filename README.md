@@ -8,7 +8,9 @@ Luminis is a language inspired by Lua that is interpreted by JavaScript. It was 
 
 Currently the interpreter cannot do much, but I am working on expanding it.
 
-## Documentation (a little lack luster rn)
+## Documentation (everything that is to my knowledge possible with it)
+
+Comments are not yet supported, but will likely use ``//`` just like in Lua.
 
 All lines can optionally be ended with ``;``, including empty lines.
 
