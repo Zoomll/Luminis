@@ -10,6 +10,8 @@ Currently the interpreter cannot do much, but I am working on expanding it.
 
 ## Documentation (everything that is to my knowledge possible with it)
 
+The file name extension while likely never going to be used, would be ``.lum``.
+
 Comments are not yet supported, but will likely use ``//`` just like in Lua.
 
 All lines can optionally be ended with ``;``, including empty lines.
