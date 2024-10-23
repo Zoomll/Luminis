@@ -1,0 +1,68 @@
+/* luminis.css */
+
+body {
+    background-color: #f4f4f4;
+    font-family: 'Courier New', Courier, monospace;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+    margin: 0;
+}
+
+h1 {
+    text-align: center;
+    color: #4CAF50;
+    margin-bottom: 30px;
+}
+
+textarea {
+    width: 100%;
+    height: 250px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    resize: vertical;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    font-size: 18px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#output {
+    margin-top: 20px;
+    width: 100%;
+    height: 200px;
+    font-family: 'Courier New', Courier, monospace;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;  /* Allows scrolling if output is large */
+}
+
+@media (max-width: 600px) {
+    textarea, button, #output {
+        width: 100%;
+    }
+
+    button {
+        font-size: 16px;
+    }
+}
