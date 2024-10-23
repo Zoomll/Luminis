@@ -31,3 +31,5 @@ let lang = "Luminis"
 print("Age: "+age)
 print("Language: "..lang)
 ```
+
+Arithmetic can be done with ``+``, ``-``,``*``, and ``/``. The Order of Operations do work.
