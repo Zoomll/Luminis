@@ -4,7 +4,7 @@
 
 Try it here! → https://zoomll.github.io/Luminis/
 
-Luminis is a language inspired by Lua that is interpreted by JavaScript. It was created with ChatGPT-4o and ChatGPT-4 as an experiment. It has made some interesting decisions. I had to guide it out of some bugs though.
+Luminis is a language inspired by Lua that is interpreted by JavaScript. It was created with ChatGPT-4o and ChatGPT-4 as an experiment. It has made some interesting decisions. Despite having to guide it out of some bugs, all code is written by ChatGPT. It even made a custom CSS stylesheet for it.
 
 Currently the interpreter cannot do much, but I am working on expanding it.
 
