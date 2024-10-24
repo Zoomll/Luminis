@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luminis Interpreter</title>
+    <link rel="stylesheet" href="luminis.css">
+</head>
+<body>
+    <h1>Luminis Interpreter</h1>
+    <textarea id="code" placeholder="Write Luminis code here..."></textarea>
+    <button onclick="runLuminis()">Run Code</button>
+    <textarea id="output" readonly></textarea>
+
+    <script>
+        class LuminisInterpreter {
+            constructor() {
+                this.context = {};  // Stores variables
+            }
+
+            // Replace variables with their values in expressions, but not inside quotes
+            replaceVariables(expr) {
+                let inQuotes = false;
+                let result = '';
+                let currentWord = '';
+
+                for (let i = 0; i < expr.length; i++) {
+                    const char = expr[i];
+
+                    if (char === '"') {
+                        inQuotes = !inQuotes;  // Toggle whether we are inside quotes
+                    }
+
+                    if (!inQuotes && /\w/.test(char)) {
+                        currentWord += char;  // Build up a word (potential variable)
+                    } else {
+                        if (currentWord.length > 0) {
+                            // Replace the word if it's a variable in context
+                            result += this.context.hasOwnProperty(currentWord) ? this.context[currentWord] : currentWord;
+                            currentWord = '';  // Reset the word
+                        }
+                        result += char;  // Add non-word characters directly to the result
+                    }
+                }
+
+                // Add the last word if there is any
+                if (currentWord.length > 0) {
+                    result += this.context.hasOwnProperty(currentWord) ? this.context[currentWord] : currentWord;
+                }
+
+                return result;
+            }
+
+            // Evaluate basic arithmetic and comparison operations
+            evalExpression(expr) {
+                expr = expr.trim();
+
+                // Handle concatenation with ".."
+                if (expr.includes('..')) {
+                    const parts = expr.split('..').map(part => this.evalExpression(part.trim()));
+                    return parts.join('');  // Join evaluated parts
+                }
+
+                // Replace variables in the expression with their actual values
+                expr = this.replaceVariables(expr);
+
+                // Handle arithmetic and comparison operations
+                if (/[+\-*/<>=]/.test(expr)) {
+                    try {
+                        return Function('"use strict"; return (' + expr + ')')();
+                    } catch (e) {
+                        return "Error evaluating expression: " + expr;
+                    }
+                }
+
+                // Handle numbers
+                if (!isNaN(expr)) {
+                    return parseFloat(expr);
+                }
+
+                // Handle string literals (surrounded by quotes)
+                if (expr.startsWith('"') && expr.endsWith('"')) {
+                    return expr.slice(1, -1);  // Remove quotes
+                }
+
+                return expr;  // In case it’s already an expression or a string
+            }
+
+            // Handle assignments (let x = 10;)
+            evalAssignment(line) {
+                const parts = line.split('=');
+                if (parts.length === 2) {
+                    const variable = parts[0].replace('let', '').trim();
+                    const value = this.evalExpression(parts[1].replace(';', '').trim());
+                    this.context[variable] = value;
+                }
+            }
+
+            // Handle print statements
+            evalPrint(line) {
+                const innerContent = line.substring(line.indexOf('(') + 1, line.lastIndexOf(')')).trim();
+                const value = this.evalExpression(innerContent);
+                this.print(value);
+            }
+
+            // Output to the output textarea
+            print(value) {
+                const outputBox = document.getElementById('output');
+                outputBox.value += value + '\n';  // Append the value to the output
+            }
+
+            // Handle if-else conditionals
+            evalConditional(lines, index) {
+                let conditionResult = this.evalExpression(lines[index].split('if ')[1].trim());
+                let endIndex = index + 1;
+                let foundElse = false;
+
+                // Find the corresponding end or else
+                while (endIndex < lines.length) {
+                    const line = lines[endIndex].trim();
+
+                    if (line.startsWith('else')) {
+                        foundElse = true;
+                        endIndex++;
+                        break;
+                    }
+
+                    if (line.startsWith('end')) {
+                        break;
+                    }
+
+                    endIndex++;
+                }
+
+                // If condition is true, execute if block and skip else block
+                if (conditionResult) {
+                    for (let i = index + 1; i < endIndex; i++) {
+                        if (!lines[i].startsWith('else')) this.evalLine(lines[i]);
+                    }
+                    return endIndex + 1;  // Skip to end after evaluating if block
+                }
+
+                // If condition is false and there is an else, execute else block
+                if (!conditionResult && foundElse) {
+                    let elseBlockIndex = endIndex;
+                    while (elseBlockIndex < lines.length && !lines[elseBlockIndex].startsWith('end')) {
+                        this.evalLine(lines[elseBlockIndex]);
+                        elseBlockIndex++;
+                    }
+                    return elseBlockIndex + 1;  // Skip to after end
+                }
+
+                return endIndex + 1;  // Skip to after end if no else or after executing else
+            }
+
+            // Process a single line of code
+            evalLine(line, index, lines) {
+                line = line.trim();
+
+                // Handle let assignments
+                if (line.startsWith('let ')) {
+                    this.evalAssignment(line);
+                }
+                // Handle print statements
+                else if (line.startsWith('print(')) {
+                    this.evalPrint(line);
+                }
+                // Handle if conditionals
+                else if (line.startsWith('if ')) {
+                    return this.evalConditional(lines, index);
+                }
+
+                return index + 1;
+            }
+
+            // Execute the code by processing each line
+            run(code) {
+                const lines = code.split('\n');
+                let index = 0;
+                while (index < lines.length) {
+                    index = this.evalLine(lines[index], index, lines);
+                }
+            }
+        }
+
+        // Triggered when "Run Code" button is pressed
+        function runLuminis() {
+            const code = document.getElementById('code').value;
+            const interpreter = new LuminisInterpreter();
+            document.getElementById('output').value = '';  // Clear previous output
+            interpreter.run(code);  // Execute code
+        }
+    </script>
+</body>
+</html>
